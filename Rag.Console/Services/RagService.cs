@@ -49,6 +49,8 @@ public class RagService
         }
 
         var context = contextBuilder.ToString();
+        var sanitizedQuestion = TextSanitizer.Sanitize(question);
+        var sanitizedContext = TextSanitizer.Sanitize(context);
 
         var prompt = $"""
             Answer the user's question using ONLY the
@@ -66,15 +68,25 @@ public class RagService
 
             CONTEXT:
 
-            {context}
+            {sanitizedContext}
 
             QUESTION:
 
-            {question}
+            {sanitizedQuestion}
             """;
 
-        ChatCompletion completion =
-            await _chatClient.CompleteChatAsync(prompt);
+        ChatCompletion completion;
+
+        try
+        {
+            completion = await _chatClient.CompleteChatAsync(prompt);
+        }
+        catch
+        {
+            return results.Count == 0
+                ? "I could not find that information in the provided documents."
+                : $"I could not complete the answer request. Source: {results[0].Chunk.FileName}";
+        }
 
         return completion.Content[0].Text;
     }

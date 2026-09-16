@@ -22,14 +22,23 @@ public class EmbeddingService
     public async Task<ReadOnlyMemory<float>> GenerateEmbeddingAsync(
         string text)
     {
+        var sanitizedText = TextSanitizer.Sanitize(text);
+
         if (_client is null)
         {
-            return GenerateLocalEmbedding(text);
+            return GenerateLocalEmbedding(sanitizedText);
         }
 
-        var result = await _client.GenerateEmbeddingAsync(text);
+        try
+        {
+            var result = await _client.GenerateEmbeddingAsync(sanitizedText);
 
-        return result.Value.ToFloats();
+            return result.Value.ToFloats();
+        }
+        catch
+        {
+            return GenerateLocalEmbedding(sanitizedText);
+        }
     }
 
     private static ReadOnlyMemory<float> GenerateLocalEmbedding(string text)

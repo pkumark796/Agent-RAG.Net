@@ -40,6 +40,12 @@ public class VectorStore
             connection);
 
         await tableCommand.ExecuteNonQueryAsync();
+
+        await using var clearCommand = new NpgsqlCommand(
+            "TRUNCATE TABLE document_chunks;",
+            connection);
+
+        await clearCommand.ExecuteNonQueryAsync();
     }
 
     public async Task AddAsync(DocumentChunk chunk)

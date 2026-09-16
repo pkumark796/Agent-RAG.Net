@@ -70,7 +70,18 @@ if (!Directory.Exists(documentsFolder))
 // 4. Find Documents
 // ============================================================
 
-var files = Directory.GetFiles(documentsFolder);
+var supportedExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+{
+    ".txt",
+    ".md",
+    ".pdf",
+    ".docx"
+};
+
+var files = Directory
+    .EnumerateFiles(documentsFolder, "*.*", SearchOption.AllDirectories)
+    .Where(file => supportedExtensions.Contains(Path.GetExtension(file)))
+    .ToArray();
 
 if (files.Length == 0)
 {
